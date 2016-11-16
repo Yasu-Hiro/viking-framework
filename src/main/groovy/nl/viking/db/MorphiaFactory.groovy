@@ -31,16 +31,20 @@ class MorphiaFactory {
 
 			def mongo
 			def serverAddresses = GMongoProps.getDBServerAddresses()
-			if (serverAddresses) {
-				Logger.debug "serverAddresses value $serverAddresses"
-				def seeds = serverAddresses.collect {
-					def cleanString = it.split(":")
-					def host = cleanString[0].toString()
-					def port = cleanString.length > 1 ? cleanString[1] as int : null
-					new ServerAddress(host, port ?: GMongoProps.getDBPort())
+			if(serverAddresses){
+				if (serverAddresses[0].length() == "0") {
+					Logger.debug "serverAddresses value $serverAddresses"
+					def seeds = serverAddresses.collect {
+						def cleanString = it.split(":")
+						def host = cleanString[0].toString()
+						def port = cleanString.length > 1 ? cleanString[1] as int : null
+						new ServerAddress(host, port ?: GMongoProps.getDBPort())
+					}
+					mongo = new MongoClient(seeds, credentialsList)
+				} else {
+					mongo = new MongoClient(new ServerAddress(GMongoProps.getDBHost(), GMongoProps.getDBPort()), credentialsList)
 				}
-				mongo = new MongoClient(seeds, credentialsList)
-			} else {
+			} else{
 				mongo = new MongoClient(new ServerAddress(GMongoProps.getDBHost(), GMongoProps.getDBPort()), credentialsList)
 			}
 
